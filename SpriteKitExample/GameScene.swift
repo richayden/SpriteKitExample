@@ -8,6 +8,13 @@
 
 import SpriteKit
 
+struct PhysicsCategory {
+    static let None : UInt32 = 0
+    static let All  : UInt32 = UInt32.max
+    static let Monster : UInt32 = 0b0001
+    static let Projectile : UInt32 = 0b0010
+}
+
 func + (left: CGPoint, right:CGPoint) -> CGPoint {
     
     return (CGPoint(x:left.x+right.x, y:left.y+right.y))
@@ -48,7 +55,7 @@ extension CGPoint {
     
 }
 
-class GameScene: SKScene {
+class GameScene: SKScene, SKPhysicsContactDelegate {
     
     let player = SKSpriteNode(imageNamed: "player")
     
@@ -65,6 +72,9 @@ class GameScene: SKScene {
                 [SKAction.runBlock(addMonster), SKAction.waitForDuration(1)]
             ))
         )
+        
+        physicsWorld.gravity = CGVectorMake(0,0)
+        physicsWorld.contactDelegate = self
         
     }
 
@@ -88,6 +98,12 @@ class GameScene: SKScene {
         
         let monster = SKSpriteNode(imageNamed: "monster")
         
+        monster.physicsBody = SKPhysicsBody(rectangleOfSize: monster.size)
+        monster.physicsBody?.dynamic = true
+        monster.physicsBody?.categoryBitMask = PhysicsCategory.Monster
+        monster.physicsBody?.contactTestBitMask = PhysicsCategory.Projectile
+        monster.physicsBody?.collisionBitMask = PhysicsCategory.None
+        
         let actualy = random(monster.size.height/2, max:size.height-monster.size.height/2)
         
         monster.position = CGPoint(x:size.width + monster.size.width/2, y:actualy)
@@ -110,6 +126,14 @@ class GameScene: SKScene {
         let touchLocation = touch.locationInNode(self)
         
         let projectile = SKSpriteNode(imageNamed: "projectile")
+        
+        projectile.physicsBody = SKPhysicsBody(circleOfRadius: projectile.size.width/2)
+        projectile.physicsBody?.dynamic = true
+        projectile.physicsBody?.categoryBitMask = PhysicsCategory.Projectile
+        projectile.physicsBody?.contactTestBitMask = PhysicsCategory.Monster
+        projectile.physicsBody?.collisionBitMask = PhysicsCategory.None
+        projectile.physicsBody?.usesPreciseCollisionDetection = true
+        
         projectile.position = player.position
         
         let offset = touchLocation - projectile.position
@@ -126,6 +150,18 @@ class GameScene: SKScene {
         let actionMoveDone = SKAction.removeFromParent()
         projectile.runAction(SKAction.sequence([actionMove,actionMoveDone]))
         
+    }
+    
+    func projectileDidCollideWithMonster(projectile:SKSpriteNode, monster:SKSpriteNode) {
+        print("hit")
+        projectile.removeFromParent()
+        monster.removeFromParent()
+    }
+    
+    func didBeginContact(contact: SKPhysicsContact) {
+        let firstBody: SKPhysicsBody = contact.bodyA
+        let secondBody: SKPhysicsBody = contact.bodyB
+        projectileDidCollideWithMonster(firstBody.node as! SKSpriteNode, monster: secondBody.node as! SKSpriteNode)
     }
     
 }
