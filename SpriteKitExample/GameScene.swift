@@ -20,6 +20,12 @@ class GameScene: SKScene {
         
         addChild(player)
         
+        runAction(SKAction.repeatActionForever(
+            SKAction.sequence(
+                [SKAction.runBlock(addMonster), SKAction.waitForDuration(1)]
+            ))
+        )
+        
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -51,4 +57,34 @@ class GameScene: SKScene {
     override func update(currentTime: CFTimeInterval) {
         /* Called before each frame is rendered */
     }
+    
+    func random() -> CGFloat {
+        return CGFloat(Float(arc4random()) / 0xFFFFFFFF)
+    }
+    
+    func random(min:CGFloat, max:CGFloat) -> CGFloat {
+        
+        return random() * (max-min) + min
+        
+    }
+    
+    func addMonster() {
+        
+        let monster = SKSpriteNode(imageNamed: "monster")
+        
+        let actualy = random(monster.size.height/2, max:size.height-monster.size.height/2)
+        
+        monster.position = CGPoint(x:size.width + monster.size.width/2, y:actualy)
+        
+        addChild(monster)
+
+        let actualDuration = random(CGFloat(2), max:CGFloat(5))
+        
+        let actionMove = SKAction.moveTo(CGPoint(x:-monster.size.width/2, y:actualy), duration:NSTimeInterval(actualDuration))
+        let actionMoveDone = SKAction.removeFromParent()
+        monster.runAction(SKAction.sequence([actionMove,actionMoveDone]))
+        
+    }
+    
+    
 }
