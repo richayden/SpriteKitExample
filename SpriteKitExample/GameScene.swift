@@ -8,6 +8,46 @@
 
 import SpriteKit
 
+func + (left: CGPoint, right:CGPoint) -> CGPoint {
+    
+    return (CGPoint(x:left.x+right.x, y:left.y+right.y))
+    
+}
+
+func - (left: CGPoint, right:CGPoint) -> CGPoint {
+    
+    return (CGPoint(x:left.x-right.x, y:left.y-right.y))
+    
+}
+
+func * (left: CGPoint, scalar:CGFloat) -> CGPoint {
+    
+    return (CGPoint(x:left.x*scalar, y:left.y*scalar))
+    
+}
+
+func / (left: CGPoint, scalar:CGFloat) -> CGPoint {
+    
+    return (CGPoint(x:left.x/scalar, y:left.y/scalar))
+    
+}
+
+func sqrt(a:CGFloat) -> CGFloat {
+    return CGFloat(sqrtf(Float(a)))
+}
+
+extension CGPoint {
+    
+    func length() -> CGFloat {
+        return sqrt(x*x + y*y)
+    }
+    
+    func normalized() -> CGPoint {
+        return self/length()
+    }
+    
+}
+
 class GameScene: SKScene {
     
     let player = SKSpriteNode(imageNamed: "player")
@@ -27,32 +67,8 @@ class GameScene: SKScene {
         )
         
     }
+
     
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-       /* Called when a touch begins */
-        
-        for touch in touches {
-            let location = touch.locationInNode(self)
-            
-            let sprite = SKSpriteNode(imageNamed:"Spaceship")
-            
-            sprite.xScale = 0.5
-            sprite.yScale = 0.5
-            sprite.position = location
-            
-            //let action = SKAction.rotateByAngle(CGFloat(M_PI), duration:1)
-            
-            //sprite.runAction(SKAction.repeatActionForever(action))
-            
-            let actionMove = SKAction.moveTo(CGPoint(x:0, y:0), duration: NSTimeInterval(1))
-            let actionMove2 = SKAction.moveTo(CGPoint(x:0, y:self.frame.height), duration: NSTimeInterval(1))
-            let actionMoveDone = SKAction.removeFromParent()
-            sprite.runAction(SKAction.sequence([actionMove,actionMove2,actionMoveDone]))
-            
-            
-            self.addChild(sprite)
-        }
-    }
    
     override func update(currentTime: CFTimeInterval) {
         /* Called before each frame is rendered */
@@ -86,5 +102,30 @@ class GameScene: SKScene {
         
     }
     
+    override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        
+        guard let touch = touches.first else {
+            return
+        }
+        let touchLocation = touch.locationInNode(self)
+        
+        let projectile = SKSpriteNode(imageNamed: "projectile")
+        projectile.position = player.position
+        
+        let offset = touchLocation - projectile.position
+        if (offset.x<0) {return}
+        
+        addChild(projectile)
+        
+        let direction = offset.normalized()
+        let shootAmount = direction * CGFloat(1000)
+        
+        let realDest = shootAmount + projectile.position
+        
+        let actionMove = SKAction.moveTo(realDest, duration: 2.0)
+        let actionMoveDone = SKAction.removeFromParent()
+        projectile.runAction(SKAction.sequence([actionMove,actionMoveDone]))
+        
+    }
     
 }
