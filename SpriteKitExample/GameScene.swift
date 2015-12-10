@@ -61,6 +61,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func didMoveToView(view: SKView) {
         
+        let backgroundMusic = SKAudioNode(fileNamed: "background-music-aac.caf")
+        backgroundMusic.autoplayLooped = true
+        addChild(backgroundMusic)
+        
         backgroundColor = SKColor.whiteColor()
         
         player.position = CGPoint(x: size.width*0.1, y: size.height*0.5)
@@ -119,6 +123,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        
+        runAction(SKAction.playSoundFileNamed("pew-pew-lei.caf", waitForCompletion: false))
         
         guard let touch = touches.first else {
             return
